@@ -5,11 +5,15 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 
-// Composants internes
 import UserProfile from "./UserProfile";
 import WalletInfo from "./WalletInfo";
 import TabSwitcher from "./TabSwitcher";
 import CryptoGrid from "./CryptoGrid";
+
+// Ajout des imports pour les filtres
+import { useSidebarFilters } from "@/context/SidebarFiltersContext";
+import FilterModal from "./FilterModal";
+import FilterButton from "./FilterButton";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -23,7 +27,10 @@ export default function Sidebar() {
   const [activeTab, setActiveTab] = useState<"invested" | "favorites">(
     "invested"
   );
-  const [showSettings, setShowSettings] = useState(false);
+
+  // Utilisation du contexte des filtres
+  const { filters, setFilters } = useSidebarFilters();
+  const [showFilter, setShowFilter] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -51,7 +58,12 @@ export default function Sidebar() {
       animate={{ x: 0, opacity: 1 }}
       className="w-96 min-h-screen bg-gradient-to-b from-[#18192B] to-[#23243a] text-white p-8 rounded-r-2xl shadow-xl"
     >
-      <UserProfile user={user} onSettings={() => setShowSettings(true)} />
+      {/* Ligne du haut : UserProfile à gauche, FilterButton à droite */}
+      <div className="flex items-center justify-between mb-6">
+        <UserProfile user={user} />
+        <FilterButton onClick={() => setShowFilter(true)} />
+      </div>
+
       <WalletInfo
         realWallet={wallet.realWallet}
         totalInvested={wallet.totalInvested}
@@ -65,6 +77,27 @@ export default function Sidebar() {
         favoritesCount={wallet.favoriteCryptos.length}
       />
       <CryptoGrid cryptos={displayedCryptos} />
+
+      {/* Ajout du modal de filtre */}
+      <FilterModal
+        open={showFilter}
+        filters={filters}
+        onApply={(f) => {
+          setFilters(f);
+          setShowFilter(false);
+        }}
+        onCancel={() => setShowFilter(false)}
+        onReset={() =>
+          setFilters({
+            category: null,
+            top: 100,
+            priceMin: null,
+            priceMax: null,
+            volumeMin: null,
+            volumeMax: null,
+          })
+        }
+      />
     </motion.aside>
   );
 }

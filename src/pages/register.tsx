@@ -21,7 +21,7 @@ export default function RegisterPage() {
 
     try {
       await signup(email, password);
-      router.push("/");
+      router.push("/login");
     } catch (err) {
       setError("Échec de l'inscription. Veuillez réessayer.");
     }

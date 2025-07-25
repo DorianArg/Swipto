@@ -27,9 +27,6 @@ export default function UserProfile({ user, onSettings }: any) {
           <p className="text-base text-[#b0b2c8]">{user?.email}</p>
         </div>
       </div>
-      <button onClick={onSettings}>
-        <Settings className="w-6 h-6 text-[#c8cadb] hover:text-[#F7A600]" />
-      </button>
     </div>
   );
 }
