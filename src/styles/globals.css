@@ -1,42 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap");
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+  --background: #1a1b2f;
+  --card-bg: #2e3046;
+  --accent: #f7a600;
+  --input-bg: #3a3c5a;
+  --input-border: #51536e;
+  --text-main: #ffffff;
+  --text-secondary: #dcdde9;
+  --text-label: #c8cadb;
+  --text-link: #f7a600;
 }
 
 body {
-  color: var(--foreground);
+  @apply min-h-screen min-w-full flex items-center justify-center font-sans;
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  color: var(--text-main);
+  font-family: "Inter", sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* Carte principale */
+.card {
+  @apply relative w-[400px] h-[600px] rounded-2xl shadow-xl flex flex-col justify-between bg-[#2e3046] border border-[#3f415b];
+  perspective: 1000px;
+  transform-style: preserve-3d;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.card-content {
+  @apply p-8 flex flex-col justify-between h-full;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Animation de swipe */
+.swipe {
+  @apply absolute;
+  will-change: transform;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Bouton accent */
+.btn-accent {
+  @apply w-full py-2 rounded-full bg-[#F7A600] text-[#1a1b2f] font-semibold hover:opacity-90 transition-all shadow-md;
+}
+
+/* Input stylé */
+.input-swipto {
+  @apply w-full px-4 py-2 bg-[#3a3c5a] border border-[#51536e] rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F7A600] transition;
+}
+
+/* Label stylé */
+.label-swipto {
+  @apply text-sm text-[#c8cadb];
+}
+
+/* Gradient logo Swipto */
+.logo-gradient {
+  @apply bg-gradient-to-r from-[#F7A600] via-[#fcd278] to-[#fff2cc] bg-clip-text text-transparent;
+}
+
+/* Styles pour la scrollbar de la sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: #1a1b2f;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #2a2b47;
+  border-radius: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: #3b3c5c;
 }
