@@ -103,7 +103,11 @@ export default function LoginPage() {
           type="button"
           className="w-full py-2 rounded-full bg-white text-[#1a1b2f] font-semibold hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2"
         >
-          <img src="logos/google-icon.svg" alt="Google" className="w-5 h-5" />
+          <img
+            src="\logos\Google_Favicon_2025.svg.png"
+            alt="Google"
+            className="w-5 h-5"
+          />
           Sign in with Google
         </button>
 
