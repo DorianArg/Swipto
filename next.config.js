@@ -4,8 +4,8 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-        pathname: "/**",
+        hostname: "coin-images.coingecko.com",
+        pathname: "/coins/images/**",
       },
       {
         protocol: "https",
@@ -14,8 +14,8 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "cryptologos.cc",
-        pathname: "/logos/**",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
       },
     ],
   },
