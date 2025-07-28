@@ -3,7 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSidebarFilters } from "@/context/SidebarFiltersContext";
 import { useFilteredCryptos } from "@/hooks/useFilteredCryptos";
 import { useAuth } from "@/context/AuthContext";
-import { saveCryptoSwipe, getUserData } from "@/lib/firebase";
+import {
+  saveCryptoSwipe,
+  getUserData,
+  updateSwipeAmount,
+} from "@/lib/firebase";
 import SwipeCard from "./SwipeCard";
 
 const NB_CRYPTOS_PER_BATCH = 5;
@@ -42,10 +46,12 @@ export default function CardStack() {
   const [isSaving, setIsSaving] = useState(false);
   const [excludedCryptoIds, setExcludedCryptoIds] = useState<string[]>([]);
 
-  // Nouveaux états pour l'effet de montant
+  // États pour l'effet de montant et la configuration
   const [swipeAmount, setSwipeAmount] = useState(100);
   const [showAmountEffect, setShowAmountEffect] = useState(false);
   const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 });
+  const [showAmountConfig, setShowAmountConfig] = useState(false);
+  const [tempAmount, setTempAmount] = useState(100);
 
   /**
    * Effet pour charger les données utilisateur incluant le montant de swipe
@@ -60,6 +66,7 @@ export default function CardStack() {
         if (userData) {
           // Mettre à jour le montant de swipe depuis les données utilisateur
           setSwipeAmount(userData.swipeAmount || 100);
+          setTempAmount(userData.swipeAmount || 100);
 
           // Extraire les IDs des cryptos déjà swipées
           const swipedIds = (userData.swipedCryptos || []).map(
@@ -127,6 +134,36 @@ export default function CardStack() {
   }, [excludedCryptoIds]); // Se déclenche seulement au chargement initial des exclusions
 
   /**
+   * Fonction pour sauvegarder le nouveau montant de swipe
+   */
+  const handleSaveSwipeAmount = async () => {
+    if (!user) return;
+
+    try {
+      await updateSwipeAmount(user.uid, tempAmount);
+      setSwipeAmount(tempAmount);
+      setShowAmountConfig(false);
+      console.log(`Montant de swipe mis à jour: $${tempAmount}`);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du montant:", error);
+    }
+  };
+
+  /**
+   * Fonction pour déclencher l'effet visuel du montant
+   */
+  const triggerAmountEffect = () => {
+    // Position au centre de la zone des cartes
+    setEffectPosition({ x: 190, y: 240 }); // Centre de la zone 380x480
+    setShowAmountEffect(true);
+
+    // Faire disparaître l'effet après 2 secondes
+    setTimeout(() => {
+      setShowAmountEffect(false);
+    }, 2000);
+  };
+
+  /**
    * Fonction pour rafraîchir le lot de cryptos avec de nouvelles suggestions
    */
   const handleRefresh = () => {
@@ -144,20 +181,6 @@ export default function CardStack() {
 
       console.log("Lot rafraîchi avec de nouvelles cryptos");
     }, 300);
-  };
-
-  /**
-   * Fonction pour déclencher l'effet visuel du montant
-   */
-  const triggerAmountEffect = () => {
-    // Position au centre de la zone des cartes
-    setEffectPosition({ x: 190, y: 240 }); // Centre de la zone 380x480
-    setShowAmountEffect(true);
-
-    // Faire disparaître l'effet après 2 secondes
-    setTimeout(() => {
-      setShowAmountEffect(false);
-    }, 2000);
   };
 
   /**
@@ -299,6 +322,80 @@ export default function CardStack() {
   return (
     <div className="h-screen flex items-center justify-center relative">
       <div className="flex flex-col items-center gap-3">
+        {/* Configuration du montant de swipe */}
+        <AnimatePresence>
+          {showAmountConfig && (
+            <motion.div
+              className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-[#18192B] border border-[#23243a] rounded-lg p-4 shadow-xl"
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.9 }}
+            >
+              <div className="text-white text-center mb-3">
+                <h3 className="font-bold text-lg">Montant par swipe</h3>
+                <p className="text-sm text-gray-400">
+                  Choisissez le montant à investir par like
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-white">$</span>
+                <input
+                  type="number"
+                  value={tempAmount}
+                  onChange={(e) => setTempAmount(Number(e.target.value))}
+                  className="bg-[#23243a] text-white px-3 py-2 rounded border border-gray-600 focus:border-blue-500 w-20 text-center"
+                  min="1"
+                  max="10000"
+                />
+              </div>
+
+              {/* Boutons prédéfinis */}
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                {[50, 100, 250, 500].map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => setTempAmount(amount)}
+                    className={`px-3 py-1 rounded text-sm transition-colors ${
+                      tempAmount === amount
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                    }`}
+                  >
+                    ${amount}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowAmountConfig(false)}
+                  className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleSaveSwipeAmount}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Sauvegarder
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Indicateur du montant actuel */}
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-gray-400 text-sm">Par swipe:</span>
+          <button
+            onClick={() => setShowAmountConfig(true)}
+            className="bg-green-900/20 text-green-400 px-3 py-1 rounded-full text-sm font-semibold hover:bg-green-800/30 transition-colors cursor-pointer"
+          >
+            ${swipeAmount}
+          </button>
+        </div>
+
         {/* Zone des cartes avec animation liée aux boutons */}
         <motion.div
           className="relative w-[380px] h-[480px]"
@@ -448,7 +545,7 @@ export default function CardStack() {
             </span>
           </motion.button>
 
-          {/* Like - Ajouter aux investissements avec effet montant */}
+          {/* Like - SANS BADGE */}
           <motion.button
             onClick={handleLike}
             disabled={isSaving}
@@ -466,7 +563,7 @@ export default function CardStack() {
                 : {}
             }
             transition={{ duration: 0.3 }}
-            className="w-14 h-14 flex items-center justify-center rounded-full bg-green-900/20 hover:bg-green-600/30 border border-green-800/30 hover:border-green-500/50 transition-all duration-200 disabled:opacity-50 relative"
+            className="w-14 h-14 flex items-center justify-center rounded-full bg-green-900/20 hover:bg-green-600/30 border border-green-800/30 hover:border-green-500/50 transition-all duration-200 disabled:opacity-50"
           >
             <motion.span
               className="text-2xl text-green-400 hover:text-green-300 transition-colors"
@@ -476,13 +573,9 @@ export default function CardStack() {
             >
               ♥
             </motion.span>
-            {/* Indicateur du montant sur le bouton */}
-            <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
-              ${swipeAmount}
-            </div>
           </motion.button>
 
-          {/* Favoris - Ajouter aux favoris */}
+          {/* Favoris */}
           <motion.button
             onClick={handleSuperLike}
             disabled={isSaving}

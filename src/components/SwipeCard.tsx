@@ -63,8 +63,8 @@ export default function SwipeCard({
     setIsDragging(false);
 
     // Seuils réduits pour un swipe plus facile
-    const threshold = 80; // Réduit de 100 à 80
-    const velocityThreshold = 300; // Réduit de 500 à 300
+    const threshold = 80;
+    const velocityThreshold = 300;
 
     const { offset, velocity } = info;
 
@@ -116,23 +116,20 @@ export default function SwipeCard({
         y,
         rotate,
         opacity,
-        zIndex: isTop ? 10 : 9 - index, // Z-index plus clair pour éviter les conflits
+        zIndex: isTop ? 10 : 9 - index,
       }}
       animate={controls}
-      // Configuration du drag avec plus de souplesse
-      drag={isTop ? true : false} // Drag seulement pour la carte du dessus
-      dragConstraints={{ left: -400, right: 400, top: -400, bottom: 400 }} // Contraintes élargies
-      dragElastic={0.8} // Plus élastique pour un mouvement plus doux
+      drag={isTop ? true : false}
+      dragConstraints={{ left: -400, right: 400, top: -400, bottom: 400 }}
+      dragElastic={0.8}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      // Transition plus douce
       transition={{
         type: "spring",
-        stiffness: 200, // Réduit pour plus de fluidité
-        damping: 20, // Réduit pour moins de résistance
+        stiffness: 200,
+        damping: 20,
       }}
-      whileHover={isTop ? { scale: 1.01 } : {}} // Scale réduit
-      // Désactiver les interactions pour les cartes non-top
+      whileHover={isTop ? { scale: 1.01 } : {}}
       style={{
         ...(!isTop && { pointerEvents: "none" }),
         x,
@@ -182,34 +179,23 @@ export default function SwipeCard({
           </>
         )}
 
-        {/* Image principale */}
-        <div className="relative w-full h-[55%]">
+        {/* Image principale - PLEINE HAUTEUR */}
+        <div className="relative w-full h-full">
           <Image
             src={data.image}
             alt={data.name}
             fill
-            className="object-cover object-center rounded-t-2xl"
-            sizes="380px"
+            className="object-cover object-center rounded-2xl"
+            sizes="320px"
             priority={isTop}
-            // Désactiver le drag sur l'image pour éviter les conflits
             draggable={false}
           />
-
-          {/* Barre de progression */}
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1 pointer-events-none">
-            {[...Array(total)].map((_, i) => (
-              <div
-                key={i}
-                className={`h-1 w-10 rounded-full transition-colors duration-300 ${
-                  i <= index ? "bg-white" : "bg-white/30"
-                }`}
-              />
-            ))}
-          </div>
+          {/* Overlay sombre pour améliorer la lisibilité du texte */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-2xl"></div>
         </div>
 
-        {/* Zone d'informations */}
-        <div className="relative h-[45%] bg-gradient-to-t from-[#18192B] via-[#18192B] to-transparent px-5 py-4 pointer-events-none">
+        {/* Zone d'informations - COLLÉE EN BAS */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#18192B] via-[#18192B]/95 to-transparent px-5 py-4 pointer-events-none rounded-b-2xl">
           {/* En-tête avec nom et prix */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -234,18 +220,30 @@ export default function SwipeCard({
           </div>
 
           {/* Informations supplémentaires */}
-          <div className="flex flex-wrap gap-1.5 mb-3">
+          <div className="flex flex-wrap gap-1.5 mb-2">
             <span className="px-2.5 py-0.5 text-xs bg-white/10 text-white/70 rounded-full">
-              Rank #{data.market_cap_rank}
+              Rang #{data.market_cap_rank}
             </span>
             <span className="px-2.5 py-0.5 text-xs bg-white/10 text-white/70 rounded-full">
               Cap: ${(data.market_cap / 1e9).toFixed(1)}B
             </span>
           </div>
 
+          {/* Informations détaillées */}
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <span className="px-2.5 py-0.5 text-xs bg-white/10 text-white/70 rounded-full">
+              Volume 24h: ${(data.total_volume / 1e6).toFixed(0)}M
+            </span>
+            {data.circulating_supply && (
+              <span className="px-2.5 py-0.5 text-xs bg-white/10 text-white/70 rounded-full">
+                Supply: {(data.circulating_supply / 1e6).toFixed(0)}M
+              </span>
+            )}
+          </div>
+
           {/* Indicateur de drag pour la carte du dessus */}
           {isTop && !isDragging && (
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
+            <div className="text-center">
               <div className="text-white/40 text-xs animate-pulse">
                 Glissez pour swiper
               </div>
