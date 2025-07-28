@@ -38,13 +38,19 @@ export function useFilteredCryptos(filters: CryptoFilters) {
           );
 
         // Filtrage côté client (volume)
-        if (filters.volumeMin !== null)
+        if (filters.volumeMin !== null && filters.volumeMin !== undefined)
           data = data.filter(
-            (coin: any) => coin.total_volume >= filters.volumeMin
+            (coin: any) =>
+              filters.volumeMin !== null &&
+              filters.volumeMin !== undefined &&
+              coin.total_volume >= filters.volumeMin
           );
-        if (filters.volumeMax !== null)
+        if (filters.volumeMax !== null && filters.volumeMax !== undefined)
           data = data.filter(
-            (coin: any) => coin.total_volume <= filters.volumeMax
+            (coin: any) =>
+              filters.volumeMax !== null &&
+              filters.volumeMax !== undefined &&
+              coin.total_volume <= filters.volumeMax
           );
 
         setCryptos(data);
