@@ -9,17 +9,19 @@ export default function WalletInfo({
     style: "currency",
     currency: "USD",
   });
+
   const formattedInvested = useClientLocaleNumber(totalInvested, "en-US", {
     style: "currency",
     currency: "USD",
   });
+
   const formattedSwipeAmount = useClientLocaleNumber(swipeAmount, "en-US", {
     style: "currency",
     currency: "USD",
   });
 
   return (
-    <div className="space-y-2 mb-8">
+    <div className="space-y-1.5">
       <div className="flex justify-between items-center">
         <span className="font-semibold text-[#F7A600]">
           Mon wallet actuel :
