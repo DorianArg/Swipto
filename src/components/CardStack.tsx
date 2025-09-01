@@ -10,6 +10,7 @@ import {
 } from "@/lib/firebase";
 import SwipeCard from "./SwipeCard";
 import ChatBubble from "./ChatBubble";
+
 import LikeExplosion from "./LikeExplosion"; // AJOUT DU COMPOSANT
 
 const NB_CRYPTOS_PER_BATCH = 1;
