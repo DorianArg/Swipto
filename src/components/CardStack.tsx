@@ -10,8 +10,9 @@ import {
 } from "@/lib/firebase";
 import SwipeCard from "./SwipeCard";
 import ChatBubble from "./ChatBubble";
+import LikeExplosion from "./LikeExplosion"; // AJOUT DU COMPOSANT
 
-const NB_CRYPTOS_PER_BATCH = 5;
+const NB_CRYPTOS_PER_BATCH = 1;
 
 /**
  * Fonction pour obtenir un lot aléatoire de cryptos en excluant celles déjà swipées
@@ -53,6 +54,10 @@ export default function CardStack() {
   const [effectPosition, setEffectPosition] = useState({ x: 0, y: 0 });
   const [showAmountConfig, setShowAmountConfig] = useState(false);
   const [tempAmount, setTempAmount] = useState(100);
+
+  // États pour l'animation LikeExplosion - AJOUT
+  const [showLikeExplosion, setShowLikeExplosion] = useState(false);
+  const [likedCrypto, setLikedCrypto] = useState<any>(null);
 
   /**
    * Effet pour charger les données utilisateur incluant le montant de swipe
@@ -153,16 +158,16 @@ export default function CardStack() {
   /**
    * Fonction pour déclencher l'effet visuel du montant
    */
-  const triggerAmountEffect = () => {
-    // Position au centre de la zone des cartes
-    setEffectPosition({ x: 190, y: 240 }); // Centre de la zone 380x480
-    setShowAmountEffect(true);
+  // const triggerAmountEffect = () => {
+  //   // Position au centre de la zone des cartes
+  //   setEffectPosition({ x: 190, y: 240 }); // Centre de la zone 380x480
+  //   setShowAmountEffect(true);
 
-    // Faire disparaître l'effet après 2 secondes
-    setTimeout(() => {
-      setShowAmountEffect(false);
-    }, 2000);
-  };
+  //   // Faire disparaître l'effet après 2 secondes
+  //   setTimeout(() => {
+  //     setShowAmountEffect(false);
+  //   }, 2000);
+  // };
 
   /**
    * Fonction pour rafraîchir le lot de cryptos avec de nouvelles suggestions
@@ -209,8 +214,12 @@ export default function CardStack() {
           await saveCryptoSwipe(user.uid, crypto, "like", swipeAmount);
           console.log("Crypto likée et sauvegardée dans les investissements !");
 
-          // Déclencher l'effet visuel du montant
-          triggerAmountEffect();
+          // DÉCLENCHER L'ANIMATION LIKEEXPLOSION - AJOUT
+          setLikedCrypto(crypto);
+          setShowLikeExplosion(true);
+
+          // Déclencher l'effet visuel du montant (optionnel, peut être supprimé si LikeExplosion le remplace)
+          // triggerAmountEffect();
         } else if (direction === "up") {
           // Favoris = Ajout aux favoris
           await saveCryptoSwipe(user.uid, crypto, "superlike");
@@ -407,7 +416,18 @@ export default function CardStack() {
           }
           transition={{ duration: 0.3 }}
         >
-          {/* Effet visuel du montant de swipe */}
+          {/* ANIMATION LIKEEXPLOSION - AJOUT */}
+          <LikeExplosion
+            isVisible={showLikeExplosion}
+            onComplete={() => {
+              setShowLikeExplosion(false);
+              setLikedCrypto(null);
+            }}
+            amount={swipeAmount}
+            cryptoName={likedCrypto?.name || ""}
+          />
+
+          {/* Effet visuel du montant de swipe (optionnel si LikeExplosion le remplace) */}
           <AnimatePresence>
             {showAmountEffect && (
               <motion.div

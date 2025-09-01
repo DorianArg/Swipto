@@ -116,7 +116,7 @@ export default function ChatBubble({ cryptoData }: ChatBubbleProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.8 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute bottom-20 right-0 w-[380px] h-[500px] bg-gradient-to-br from-[#18192B] to-[#23243a] rounded-2xl shadow-2xl border border-[#23243a]/50 overflow-hidden"
+            className="absolute bottom-20 right-0 w-[300px] h-[500px] bg-gradient-to-br from-[#18192B] to-[#23243a] rounded-2xl shadow-2xl border border-[#23243a]/50 overflow-hidden"
           >
             {/* Header du chat */}
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 flex items-center justify-between">
@@ -237,36 +237,16 @@ export default function ChatBubble({ cryptoData }: ChatBubbleProps) {
         onClick={toggleChat}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className={`relative w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 ${
+        className={`relative w-16 h-16 bg-gradient-to-r from-purple-800 to-blue-800 rounded-full flex items-center justify-center transition-all duration-300 ${
           isOpen ? "rotate-180" : ""
         }`}
       >
         {/* Icône de chat */}
         <span className="text-2xl text-white">{isOpen ? "✕" : "💬"}</span>
 
-        {/* Indicateur de nouveau message */}
-        <AnimatePresence>
-          {hasNewMessage && !isOpen && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
-            >
-              <motion.span
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="text-xs text-white font-bold"
-              >
-                !
-              </motion.span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Effet de pulsation */}
         <motion.div
-          animate={hasNewMessage && !isOpen ? { scale: [1, 1.2, 1] } : {}}
+          animate={hasNewMessage && !isOpen ? { scale: [1, 1.3, 1] } : {}}
           transition={{ repeat: Infinity, duration: 2 }}
           className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full opacity-75"
         />
