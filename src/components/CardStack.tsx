@@ -9,6 +9,7 @@ import {
   updateSwipeAmount,
 } from "@/lib/firebase";
 import SwipeCard from "./SwipeCard";
+import ChatBubble from "./ChatBubble";
 
 const NB_CRYPTOS_PER_BATCH = 5;
 
@@ -623,6 +624,9 @@ export default function CardStack() {
           </motion.button>
         </div>
       </div>
+
+      {/* Bulle de chat flottante */}
+      {currentBatch.length > 0 && <ChatBubble cryptoData={currentBatch[0]} />}
     </div>
   );
 }

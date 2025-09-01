@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function CryptoGrid({ cryptos }: any) {
   return (
-    <div className="grid grid-cols-3 gap-5 max-h-[340px] overflow-y-auto pr-2">
+    <div className="grid grid-cols-3 gap-5">
       {cryptos.map((crypto: any) => (
         <div
           key={crypto.id}
