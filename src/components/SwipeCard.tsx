@@ -112,6 +112,7 @@ export default function SwipeCard({
     <motion.div
       className="absolute w-full h-full"
       style={{
+        ...(!isTop && { pointerEvents: "none" }),
         x,
         y,
         rotate,
@@ -130,14 +131,6 @@ export default function SwipeCard({
         damping: 20,
       }}
       whileHover={isTop ? { scale: 1.01 } : {}}
-      style={{
-        ...(!isTop && { pointerEvents: "none" }),
-        x,
-        y,
-        rotate,
-        opacity,
-        zIndex: isTop ? 10 : 9 - index,
-      }}
     >
       <div
         className={`w-full h-full rounded-2xl shadow-xl bg-[#18192B] overflow-hidden border border-[#23243a] relative ${
@@ -169,7 +162,7 @@ export default function SwipeCard({
 
             {/* Overlay FAVORIS (bleu en haut) */}
             <motion.div
-              className="absolute inset-0 bg-blue-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-20"
+              className="absolute inset-0 bg-blue-500/20 rounded-2xl flex items-center justify-center pointer-events-none z-50"
               style={{ opacity: superLikeOpacity }}
             >
               <div className="text-2xl font-bold text-white border-3 border-white px-3 py-2 rounded-lg bg-blue-500/50">
