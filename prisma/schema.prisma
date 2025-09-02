@@ -65,25 +65,13 @@ model ChallengeProgress {
   @@unique([userId, key])
 }
 
-// Saison (périodes de leaderboard)
-model Season {
-  id        String       @id @default(cuid())
-  key       String       @unique           // ex: "2025-09"
-  name      String
-  startsAt  DateTime
-  endsAt    DateTime
-
-  likes     SeasonLike[]
-}
-
-// Agrégats de likes par saison et par crypto
-model SeasonLike {
+// Historique des swipes (pour leaderboard global)
+model Swipe {
   id        String   @id @default(cuid())
-  seasonId  String
+  userId    String
   coinId    String
-  likes     Int      @default(0)
+  action    String
+  createdAt DateTime @default(now())
 
-  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-
-  @@unique([seasonId, coinId])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

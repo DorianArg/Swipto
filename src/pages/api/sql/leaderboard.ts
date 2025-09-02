@@ -5,31 +5,20 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { seasonKey, limit } = req.query;
+  const { limit } = req.query;
   const top = Number(limit || 10);
 
   try {
-    let season = null;
-    if (seasonKey && typeof seasonKey === "string") {
-      season = await prisma.season.findUnique({ where: { key: seasonKey } });
-    } else {
-      const now = new Date();
-      season = await prisma.season.findFirst({
-        where: { startsAt: { lte: now }, endsAt: { gte: now } },
-      });
-    }
-
-    if (!season) return res.status(404).json({ error: "Season not found" });
-
-    const rows = await prisma.seasonLike.findMany({
-      where: { seasonId: season.id },
-      orderBy: { likes: "desc" },
+    const rows = await prisma.swipe.groupBy({
+      by: ["coinId"],
+      where: { action: { in: ["like", "superlike"] } },
+      _count: { coinId: true },
+      orderBy: { _count: { coinId: "desc" } },
       take: top,
     });
 
     return res.status(200).json({
-      season: { key: season.key, name: season.name },
-      leaderboard: rows.map((r) => ({ coinId: r.coinId, likes: r.likes })),
+      leaderboard: rows.map((r) => ({ coinId: r.coinId, likes: r._count.coinId })),
     });
   } catch (e) {
     return res.status(500).json({ error: "Internal error" });
