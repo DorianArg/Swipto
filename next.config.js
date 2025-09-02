@@ -20,6 +20,8 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
+  outputFileTracing: false,
+  distDir: ".next-dev",
 };
 
 module.exports = nextConfig;

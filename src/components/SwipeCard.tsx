@@ -8,6 +8,7 @@ import {
 } from "framer-motion";
 import Image from "next/image";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 interface SwipeCardProps {
   data: any;
@@ -24,6 +25,8 @@ export default function SwipeCard({
   index,
   total,
 }: SwipeCardProps) {
+  const { user } = useAuth();
+
   // États pour gérer le drag et les animations
   const [isDragging, setIsDragging] = useState(false);
 
@@ -107,6 +110,24 @@ export default function SwipeCard({
       y.set(0);
     }
   };
+
+  async function postSqlSwipe(coinId: string) {
+    try {
+      await fetch("/api/sql/swipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.uid, coinId, action: "like" }),
+      });
+    } catch {}
+  }
+
+  async function onLike(coinId: string) {
+    // 1) Écritures Firestore existantes
+    // ...existing code... (ex: saveCryptoSwipe(...))
+
+    // 2) Duplique en SQL
+    if (user?.uid) await postSqlSwipe(coinId);
+  }
 
   return (
     <motion.div

@@ -9,11 +9,12 @@ import UserProfile from "./UserProfile";
 import WalletInfo from "./WalletInfo";
 import TabSwitcher from "./TabSwitcher";
 import CryptoGrid from "./CryptoGrid";
-
-// Ajout des imports pour les filtres
 import { useSidebarFilters } from "@/context/SidebarFiltersContext";
 import FilterModal from "./FilterModal";
 import FilterButton from "./FilterButton";
+// Ajouts
+import AccountBadgesIcons from "@/components/AccountBadgesIcons";
+import Leaderboard from "@/components/Leaderboard";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -24,9 +25,9 @@ export default function Sidebar() {
     favoriteCryptos: [],
     swipeAmount: 100,
   });
-  const [activeTab, setActiveTab] = useState<"invested" | "favorites">(
-    "invested"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "invested" | "favorites" | "leaderboard"
+  >("invested");
 
   // Utilisation du contexte des filtres
   const { filters, setFilters } = useSidebarFilters();
@@ -49,8 +50,13 @@ export default function Sidebar() {
     return () => unsubscribe();
   }, [user]);
 
+  // Ajuster le calcul en tenant compte de "leaderboard"
   const displayedCryptos =
-    activeTab === "invested" ? wallet.swipedCryptos : wallet.favoriteCryptos;
+    activeTab === "invested"
+      ? wallet.swipedCryptos
+      : activeTab === "favorites"
+      ? wallet.favoriteCryptos
+      : [];
 
   return (
     <motion.aside
@@ -74,6 +80,10 @@ export default function Sidebar() {
           <div className="flex items-center justify-between">
             <UserProfile user={user} />
             <FilterButton onClick={() => setShowFilter(true)} />
+          </div>
+          {/* Icônes de badges obtenus (affichées entre le compte et "mon wallet actuel") */}
+          <div className="mt-2">
+            <AccountBadgesIcons limit={3} />
           </div>
         </div>
 
@@ -109,12 +119,16 @@ export default function Sidebar() {
           />
         </div>
 
-        {/* Grid des cryptos avec container scrollable amélioré */}
+        {/* Contenu selon l'onglet actif */}
         <div className="flex-1 overflow-hidden">
-          {displayedCryptos.length > 0 ? (
+          {activeTab === "leaderboard" ? (
+            <div className="h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/30">
+              <Leaderboard />
+              <div className="h-4"></div>
+            </div>
+          ) : displayedCryptos.length > 0 ? (
             <div className="h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/30">
               <CryptoGrid cryptos={displayedCryptos} />
-              {/* Padding en bas pour éviter que le dernier élément soit coupé */}
               <div className="h-4"></div>
             </div>
           ) : (
@@ -122,18 +136,26 @@ export default function Sidebar() {
             <div className="h-full flex flex-col items-center justify-center text-center p-6">
               <div className="w-16 h-16 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-4">
                 <span className="text-2xl">
-                  {activeTab === "invested" ? "💰" : "⭐"}
+                  {activeTab === "invested"
+                    ? "💰"
+                    : activeTab === "favorites"
+                    ? "⭐"
+                    : "🏆"}
                 </span>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">
                 {activeTab === "invested"
                   ? "Aucun investissement"
-                  : "Aucun favori"}
+                  : activeTab === "favorites"
+                  ? "Aucun favori"
+                  : "Aucun classement disponible"}
               </h3>
               <p className="text-gray-400 text-sm leading-relaxed">
                 {activeTab === "invested"
                   ? "Commencez à swiper vers la droite pour investir dans vos premières cryptos !"
-                  : "Swipez vers le haut pour ajouter des cryptos à vos favoris."}
+                  : activeTab === "favorites"
+                  ? "Swipez vers le haut pour ajouter des cryptos à vos favoris."
+                  : "Le leaderboard se mettra à jour après des likes et/ou un recompute."}
               </p>
             </div>
           )}

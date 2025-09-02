@@ -26,6 +26,17 @@ export default function TabSwitcher({
       >
         Favoris ({favoritesCount})
       </button>
+      {/* Nouvel onglet Leaderboard */}
+      <button
+        className={`pb-1 transition ${
+          activeTab === "leaderboard"
+            ? "text-[#F7A600] border-b-2 border-[#F7A600]"
+            : "text-[#b0b2c8]"
+        }`}
+        onClick={() => setActiveTab("leaderboard")}
+      >
+        Leaderboard
+      </button>
     </div>
   );
 }

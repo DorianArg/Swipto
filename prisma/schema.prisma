@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id    String  @id @default(cuid()) // Utiliser le UID Firebase comme clé
+  email String  @unique
+  name  String?
+
+  // Relations
+  badges    UserBadge[]
+  progress  ChallengeProgress[]
+}
+
+// Badges "catalogue" (définit les objectifs)
+model Badge {
+  id           String      @id @default(cuid())
+  key          String      @unique        // ex: "like_10_24h"
+  name         String
+  description  String?
+  target       Int
+  windowHours  Int?
+  createdAt    DateTime    @default(now())
+  icon         String?                      // Nom d’icône lucide-react (ex: "ThumbsUp", "Medal", "Trophy")
+
+  userBadges   UserBadge[]
+}
+
+// Badges débloqués par utilisateur
+model UserBadge {
+  id         String   @id @default(cuid())
+  userId     String
+  badgeId    String
+  unlockedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+}
+
+// Progression des challenges par utilisateur (compteur glissant)
+model ChallengeProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  key         String                    // ex: "like_24h"
+  count       Int      @default(0)
+  periodStart DateTime                  // début de la fenêtre (ex: now - 24h)
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+}
+
+// Saison (périodes de leaderboard)
+model Season {
+  id        String       @id @default(cuid())
+  key       String       @unique           // ex: "2025-09"
+  name      String
+  startsAt  DateTime
+  endsAt    DateTime
+
+  likes     SeasonLike[]
+}
+
+// Agrégats de likes par saison et par crypto
+model SeasonLike {
+  id        String   @id @default(cuid())
+  seasonId  String
+  coinId    String
+  likes     Int      @default(0)
+
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonId, coinId])
+}
