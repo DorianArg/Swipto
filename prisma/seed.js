@@ -42,21 +42,6 @@ async function main() {
       },
     });
   }
-
-  // Assurer la saison du mois courant
-  const now = new Date();
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const key = `${y}-${m}`;
-  const start = new Date(Date.UTC(y, now.getUTCMonth(), 1, 0, 0, 0, 0));
-  const end = new Date(Date.UTC(y, now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
-
-  await prisma.season.upsert({
-    where: { key },
-    create: { key, name: `Saison ${key}`, startsAt: start, endsAt: end },
-    update: { name: `Saison ${key}`, startsAt: start, endsAt: end },
-  });
-
   console.log("Seed OK");
 }
 

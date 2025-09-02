@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { prisma } from "@/lib/prisma";
-import { ensureSeasonForDate } from "@/lib/season";
 
 const LIKE_CHALLENGE_KEY = "like_24h";
 const WINDOW_HOURS = 24;
@@ -20,12 +19,16 @@ export default async function handler(
   if (!userId || !coinId)
     return res.status(400).json({ error: "Missing userId or coinId" });
 
-  // On ne compte que les "likes"
-  if (action && action !== "like")
-    return res.status(200).json({ ok: true, skipped: true });
-
   try {
     const now = new Date();
+
+    await prisma.swipe.create({
+      data: { userId, coinId, action: action || "like", createdAt: now },
+    });
+
+    // On ne compte que les "likes" pour la gamification
+    if (action && action !== "like")
+      return res.status(200).json({ ok: true, skipped: true });
 
     // 1) Progression du challenge 24h
     const existing = await prisma.challengeProgress.findUnique({
@@ -68,19 +71,10 @@ export default async function handler(
       }
     }
 
-    // 3) Saison mensuelle -> incrémente SeasonLike
-    const season = await ensureSeasonForDate(now);
-    const seasonLike = await prisma.seasonLike.upsert({
-      where: { seasonId_coinId: { seasonId: season.id, coinId } },
-      create: { seasonId: season.id, coinId, likes: 1 },
-      update: { likes: { increment: 1 } },
-    });
-
     return res.status(200).json({
       ok: true,
       progress: { key: progress.key, count: progress.count },
       unlockedBadges: unlocked,
-      seasonLike: { seasonKey: season.key, coinId, likes: seasonLike.likes },
     });
   } catch (e) {
     console.error(e);
