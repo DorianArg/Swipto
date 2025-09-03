@@ -79,46 +79,26 @@ body {
   background: #3b3c5c;
 }
 
-/* Scrollbar stylée pour la grid */
-.scroll-area {
-  scrollbar-gutter: stable both-edges; /* évite les sauts de layout */
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
-}
-
-.scroll-area::-webkit-scrollbar {
-  width: 8px;
-}
-
-.scroll-area::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scroll-area::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.25);
-  border-radius: 8px;
-}
-
-.scroll-area:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.4);
-}
-
 /* Scrollbar dédiée à la grid des cryptos */
 .crypto-grid-scroll {
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
+
 .crypto-grid-scroll::-webkit-scrollbar {
   width: 8px;
 }
+
 .crypto-grid-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .crypto-grid-scroll::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.25);
   border-radius: 8px;
 }
+
 .crypto-grid-scroll:hover::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.4);
 }

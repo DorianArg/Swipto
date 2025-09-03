@@ -1,20 +1,21 @@
 // components/Sidebar/Sidebar.tsx
-import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useAuth } from "@/context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
+import { onSnapshot, doc } from "firebase/firestore";
+import { db } from "../../lib/firebase";
 
+// Composants
 import UserProfile from "./UserProfile";
 import WalletInfo from "./WalletInfo";
+import FilterButton from "./FilterButton";
 import TabSwitcher from "./TabSwitcher";
 import CryptoGrid from "./CryptoGrid";
-import DropdownSection, { DropdownItem } from "./DropdownSection";
+import FilterModal from "./FilterModal";
+import DropdownSection from "./DropdownSection";
 
 // Ajout des imports pour les filtres
-import { useSidebarFilters } from "@/context/SidebarFiltersContext";
-import FilterModal from "./FilterModal";
-import FilterButton from "./FilterButton";
+import { useSidebarFilters } from "../../context/SidebarFiltersContext";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -75,7 +76,7 @@ export default function Sidebar() {
     activeTab === "invested" ? wallet.swipedCryptos : wallet.favoriteCryptos;
 
   // Données fictives/vides pour Leaderboard (à brancher plus tard)
-  const leaderboardItems: DropdownItem[] = [];
+  const leaderboardItems = [];
 
   return (
     <motion.aside

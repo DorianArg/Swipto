@@ -43,7 +43,6 @@ export default function DropdownSection({
     controlledOpen !== undefined ? onToggle || (() => {}) : setInternalOpen;
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Fermeture au clic extérieur / touche Escape selon les flags
   useEffect(() => {
     const onClickOutside = (e: MouseEvent) => {
       if (!open || !closeOnOutside) return;
