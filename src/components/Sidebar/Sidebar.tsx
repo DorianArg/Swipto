@@ -1,19 +1,21 @@
 // components/Sidebar/Sidebar.tsx
-import { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useAuth } from "@/context/AuthContext";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
+import { onSnapshot, doc } from "firebase/firestore";
+import { db } from "../../lib/firebase";
 
+// Composants
 import UserProfile from "./UserProfile";
 import WalletInfo from "./WalletInfo";
+import FilterButton from "./FilterButton";
 import TabSwitcher from "./TabSwitcher";
 import CryptoGrid from "./CryptoGrid";
+import FilterModal from "./FilterModal";
+import DropdownSection from "./DropdownSection";
 
 // Ajout des imports pour les filtres
-import { useSidebarFilters } from "@/context/SidebarFiltersContext";
-import FilterModal from "./FilterModal";
-import FilterButton from "./FilterButton";
+import { useSidebarFilters } from "../../context/SidebarFiltersContext";
 
 export default function Sidebar() {
   const { user } = useAuth();
@@ -31,6 +33,27 @@ export default function Sidebar() {
   // Utilisation du contexte des filtres
   const { filters, setFilters } = useSidebarFilters();
   const [showFilter, setShowFilter] = useState(false);
+
+  // États pour contrôler l'ouverture des dropdowns
+  const [mesCryptosOpen, setMesCryptosOpen] = useState(true);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
+
+  // Synchronisation des menus : un seul ouvert à la fois
+  const handleMesCryptosToggle = () => {
+    const newState = !mesCryptosOpen;
+    setMesCryptosOpen(newState);
+    if (newState && leaderboardOpen) {
+      setLeaderboardOpen(false);
+    }
+  };
+
+  const handleLeaderboardToggle = () => {
+    const newState = !leaderboardOpen;
+    setLeaderboardOpen(newState);
+    if (newState && mesCryptosOpen) {
+      setMesCryptosOpen(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -52,6 +75,9 @@ export default function Sidebar() {
   const displayedCryptos =
     activeTab === "invested" ? wallet.swipedCryptos : wallet.favoriteCryptos;
 
+  // Données fictives/vides pour Leaderboard (à brancher plus tard)
+  const leaderboardItems = [];
+
   return (
     <motion.aside
       initial={{ x: -100, opacity: 0 }}
@@ -67,7 +93,7 @@ export default function Sidebar() {
       </div>
 
       {/* Contenu principal avec glassmorphism */}
-      <div className="relative z-10 h-full backdrop-blur-sm bg-white/5 border-r border-white/10 p-6 flex flex-col">
+      <div className="relative z-10 h-screen backdrop-blur-sm bg-white/5 border-r border-white/10 p-6 flex flex-col">
         {/* Header simple sans ligne décorative - ESPACE RÉDUIT */}
         <div className="mb-4">
           {/* Ligne du haut : UserProfile à gauche, FilterButton à droite */}
@@ -86,80 +112,108 @@ export default function Sidebar() {
           />
         </div>
 
-        {/* Section Cryptos avec header stylisé amélioré - ESPACE RÉDUIT */}
-        <div className="mb-3">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-2 h-6 bg-gradient-to-b from-green-400 to-blue-500 rounded-full"></div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Mes Cryptos
-            </h2>
-          </div>
+        {/* Zone centrale flexible pour "Mes Cryptos" */}
+        <div
+          className={`transition-all duration-300 ${
+            mesCryptosOpen ? "flex-1 min-h-0" : "flex-none"
+          } mb-3`}
+        >
+          <DropdownSection
+            title="Mes Cryptos"
+            open={mesCryptosOpen}
+            onToggle={handleMesCryptosToggle}
+            closeOnOutside={false}
+            closeOnEscape={false}
+            closeOnSelect={false}
+            renderTrigger={(open) => (
+              <>
+                <div className="w-2 h-6 bg-gradient-to-b from-green-400 to-blue-500 rounded-full"></div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  Mes Cryptos
+                </h2>
+              </>
+            )}
+          >
+            <div className="mb-3">
+              <TabSwitcher
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                investedCount={wallet.swipedCryptos.length}
+                favoritesCount={wallet.favoriteCryptos.length}
+              />
+            </div>
 
-          {/* Ligne séparatrice subtile - ESPACE RÉDUIT */}
-          <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-2"></div>
+            {/* Scroll uniquement sur la grid */}
+            <div className="crypto-grid-scroll h-full max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
+              {displayedCryptos.length > 0 ? (
+                <>
+                  <CryptoGrid cryptos={displayedCryptos} />
+                  <div className="h-4"></div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center p-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-4">
+                    <span className="text-2xl">
+                      {activeTab === "invested" ? "💰" : "⭐"}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {activeTab === "invested"
+                      ? "Aucun investissement"
+                      : "Aucun favori"}
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    {activeTab === "invested"
+                      ? "Commencez à swiper vers la droite pour investir dans vos premières cryptos !"
+                      : "Swipez vers le haut pour ajouter des cryptos à vos favoris."}
+                  </p>
+                </div>
+              )}
+            </div>
+          </DropdownSection>
         </div>
 
-        {/* Tab Switcher avec style moderne - ESPACE RÉDUIT */}
-        <div className="mb-3">
-          <TabSwitcher
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            investedCount={wallet.swipedCryptos.length}
-            favoritesCount={wallet.favoriteCryptos.length}
+        {/* Leaderboard remonte quand Mes Cryptos se ferme */}
+        <div className="shrink-0">
+          <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent my-2"></div>
+          <DropdownSection
+            title="Leaderboard"
+            open={leaderboardOpen}
+            onToggle={handleLeaderboardToggle}
+            items={leaderboardItems}
+            onSelect={(item) => console.log("Leaderboard sélectionné:", item)}
+            renderTrigger={(open) => (
+              <>
+                <div className="w-2 h-6 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></div>
+                <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  Leaderboard
+                </h2>
+              </>
+            )}
           />
         </div>
 
-        {/* Grid des cryptos avec container scrollable amélioré */}
-        <div className="flex-1 overflow-hidden">
-          {displayedCryptos.length > 0 ? (
-            <div className="h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/20 hover:scrollbar-thumb-white/30">
-              <CryptoGrid cryptos={displayedCryptos} />
-              {/* Padding en bas pour éviter que le dernier élément soit coupé */}
-              <div className="h-4"></div>
-            </div>
-          ) : (
-            // État vide amélioré
-            <div className="h-full flex flex-col items-center justify-center text-center p-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-700 to-gray-800 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl">
-                  {activeTab === "invested" ? "💰" : "⭐"}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
-                {activeTab === "invested"
-                  ? "Aucun investissement"
-                  : "Aucun favori"}
-              </h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                {activeTab === "invested"
-                  ? "Commencez à swiper vers la droite pour investir dans vos premières cryptos !"
-                  : "Swipez vers le haut pour ajouter des cryptos à vos favoris."}
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Modal de filtre avec backdrop amélioré */}
+        <FilterModal
+          open={showFilter}
+          filters={filters}
+          onApply={(f) => {
+            setFilters(f);
+            setShowFilter(false);
+          }}
+          onCancel={() => setShowFilter(false)}
+          onReset={() =>
+            setFilters({
+              category: null,
+              top: 100,
+              priceMin: null,
+              priceMax: null,
+              volumeMin: null,
+              volumeMax: null,
+            })
+          }
+        />
       </div>
-
-      {/* Modal de filtre avec backdrop amélioré */}
-      <FilterModal
-        open={showFilter}
-        filters={filters}
-        onApply={(f) => {
-          setFilters(f);
-          setShowFilter(false);
-        }}
-        onCancel={() => setShowFilter(false)}
-        onReset={() =>
-          setFilters({
-            category: null,
-            top: 100,
-            priceMin: null,
-            priceMax: null,
-            volumeMin: null,
-            volumeMax: null,
-          })
-        }
-      />
     </motion.aside>
   );
 }
