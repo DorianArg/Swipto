@@ -76,7 +76,7 @@ export default function Sidebar() {
     activeTab === "invested" ? wallet.swipedCryptos : wallet.favoriteCryptos;
 
   // Données fictives/vides pour Leaderboard (à brancher plus tard)
-  const leaderboardItems = [];
+  const leaderboardItems: any[] = [];
 
   return (
     <motion.aside
@@ -125,7 +125,7 @@ export default function Sidebar() {
             closeOnOutside={false}
             closeOnEscape={false}
             closeOnSelect={false}
-            renderTrigger={(open) => (
+            renderTrigger={() => (
               <>
                 <div className="w-2 h-6 bg-gradient-to-b from-green-400 to-blue-500 rounded-full"></div>
                 <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
@@ -182,7 +182,7 @@ export default function Sidebar() {
             onToggle={handleLeaderboardToggle}
             items={leaderboardItems}
             onSelect={(item) => console.log("Leaderboard sélectionné:", item)}
-            renderTrigger={(open) => (
+            renderTrigger={() => (
               <>
                 <div className="w-2 h-6 bg-gradient-to-b from-purple-400 to-pink-500 rounded-full"></div>
                 <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
