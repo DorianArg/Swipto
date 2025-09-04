@@ -1,7 +1,33 @@
-POST http://localhost:3000/api/notes
+# Enregistrer des likes (remplir la BDD)
+POST http://localhost:3000/api/swipe
 content-type: application/json
 
 {
-  "title": "dEuxieme Note",
-  "content": "Ceci est le contenu de ma dEuxieme note."
+  "userId": "user_1",
+  "action": "like",
+  "coin": {
+    "id": "bitcoin",
+    "symbol": "BTC",
+    "name": "Bitcoin",
+    "category": "cryptocurrency"
+  }
 }
+
+###
+POST http://localhost:3000/api/swipe
+content-type: application/json
+
+{
+  "userId": "user_2",
+  "action": "superlike",
+  "coin": {
+    "id": "ethereum",
+    "symbol": "ETH",
+    "name": "Ethereum",
+    "category": "smart-contracts"
+  }
+}
+
+###
+# Récupérer le leaderboard
+GET http://localhost:3000/api/leaderboard?limit=10

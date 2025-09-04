@@ -6,6 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -14,8 +15,24 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model Note {
+model Coin {
+  id       String   @id        // ex: "bitcoin"
+  symbol   String
+  name     String
+  category String?
+  swipes   Swipe[]             // 👈 relation inverse (1 coin → N swipes)
+  
+  @@map("Coin")
+}
+
+model Swipe {
   id        String   @id @default(cuid())
-  title     String
-  content   String
+  userId    String
+  coinId    String
+  action    String   // 'like', 'superlike', 'dislike'
+  createdAt DateTime @default(now())
+  
+  coin      Coin     @relation(fields: [coinId], references: [id])
+  
+  @@map("Swipe")
 }
