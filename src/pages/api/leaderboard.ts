@@ -1,24 +1,25 @@
+// ==============================================
+// Imports
+// ==============================================
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../lib/prisma";
+import { getLeaderboard, LeaderboardItem } from "@/api/leaderboard";
 
-type LeaderboardItem = {
-  rank: number;
-  coinId: string;
-  symbol: string;
-  name: string;
-  category: string | null;
-  likeCount: number;
-};
-
-type LeaderboardResponse =
+// ==============================================
+// Response Types
+// ==============================================
+export type LeaderboardResponse =
   | { success: true; data: LeaderboardItem[]; total: number }
   | { success: false; error: string };
 
+// ==============================================
+// API Route Handler
+// ==============================================
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<LeaderboardResponse>
 ) {
   try {
+    // Reject any method other than GET
     if (req.method !== "GET") {
       res.setHeader("Allow", "GET");
       return res
@@ -26,48 +27,21 @@ export default async function handler(
         .json({ success: false, error: "Method Not Allowed" });
     }
 
-    // Pas de cache côté client/proxy
+    // Disable caching to always serve fresh leaderboard data
     res.setHeader("Cache-Control", "no-store, must-revalidate");
     res.setHeader("Pragma", "no-cache");
 
+    // Extract and sanitize the limit parameter (default 20, max 100)
     const limitRaw = String(req.query.limit ?? "20");
     const parsed = parseInt(limitRaw, 10);
     const limit = Number.isFinite(parsed)
       ? Math.min(Math.max(parsed, 1), 100)
       : 20;
 
-    // Agrégat all-time sur like + superlike
-    const grouped = await prisma.swipe.groupBy({
-      by: ["coinId"],
-      where: { action: { in: ["like", "superlike"] } },
-      _count: { coinId: true }, // <- on compte sur coinId
-      orderBy: { _count: { coinId: "desc" } },
-      take: limit,
-    });
+    // Retrieve ranked coins
+    const data = await getLeaderboard(limit);
 
-    if (grouped.length === 0) {
-      return res.status(200).json({ success: true, data: [], total: 0 });
-    }
-
-    const coinIds = grouped.map((g) => g.coinId);
-    const coins = await prisma.coin.findMany({
-      where: { id: { in: coinIds } },
-      select: { id: true, symbol: true, name: true, category: true },
-    });
-    const coinMap = new Map(coins.map((c) => [c.id, c]));
-
-    const data: LeaderboardItem[] = grouped.map((g, i) => {
-      const coin = coinMap.get(g.coinId);
-      return {
-        rank: i + 1,
-        coinId: coin?.id ?? g.coinId,
-        symbol: coin?.symbol ?? g.coinId.toUpperCase(),
-        name: coin?.name ?? g.coinId,
-        category: coin?.category ?? null,
-        likeCount: g._count.coinId, // ✅ le bon champ
-      };
-    });
-
+    // Respond with aggregated data
     return res.status(200).json({ success: true, data, total: data.length });
   } catch (e) {
     console.error("[api/leaderboard] error:", e);

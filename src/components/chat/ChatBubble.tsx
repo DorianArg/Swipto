@@ -1,6 +1,12 @@
+// ==============================================
+// Imports
+// ==============================================
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+// ==============================================
+// Types
+// ==============================================
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -11,6 +17,9 @@ interface ChatBubbleProps {
   cryptoData: any;
 }
 
+// ==============================================
+// Component
+// ==============================================
 export default function ChatBubble({ cryptoData }: ChatBubbleProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);

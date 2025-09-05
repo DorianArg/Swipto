@@ -1,13 +1,17 @@
-// components/Sidebar/Sidebar.tsx
+// ==============================================
+// Imports
+// ==============================================
 import React, { useState, useEffect } from "react";
-import { useLeaderboard } from "../../hooks/useLeaderboard";
-import { useAuth } from "../../context/AuthContext";
+import { useLeaderboard } from "@/hooks/useLeaderboard";
+import { useAuth } from "@/context/AuthContext";
 import { onSnapshot, doc } from "firebase/firestore";
-import { db } from "../../lib/firebase";
+import { db } from "@/lib/firebase";
 import { Trophy, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
-// Composants
+// ==============================================
+// Internal Components
+// ==============================================
 import UserProfile from "./UserProfile";
 import WalletInfo from "./WalletInfo";
 import FilterButton from "./FilterButton";
@@ -17,8 +21,11 @@ import FilterModal from "./FilterModal";
 import DropdownSection, { DropdownItem } from "./DropdownSection";
 
 // Ajout des imports pour les filtres
-import { useSidebarFilters } from "../../context/SidebarFiltersContext";
+import { useSidebarFilters } from "@/context/SidebarFiltersContext";
 
+// ==============================================
+// Component
+// ==============================================
 export default function Sidebar() {
   const { user } = useAuth();
 
