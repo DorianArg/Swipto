@@ -1,18 +1,19 @@
+// ==============================================
+// Imports
+// ==============================================
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSidebarFilters } from "@/context/SidebarFiltersContext";
 import { useFilteredCryptos } from "@/hooks/useFilteredCryptos";
 import { useAuth } from "@/context/AuthContext";
-import {
-  saveCryptoSwipe,
-  getUserData,
-  updateSwipeAmount,
-} from "@/lib/firebase";
-import SwipeCard from "./SwipeCard";
-import ChatBubble from "./ChatBubble";
+import { saveCryptoSwipe, getUserData, updateSwipeAmount } from "@/lib/firebase";
+import SwipeCard from "@/components/cards/SwipeCard";
+import ChatBubble from "@/components/chat/ChatBubble";
+import LikeExplosion from "@/components/animations/LikeExplosion"; // Effet visuel de like
 
-import LikeExplosion from "./LikeExplosion"; // AJOUT DU COMPOSANT
-
+// ==============================================
+// Constants
+// ==============================================
 const NB_CRYPTOS_PER_BATCH = 1;
 
 /**
@@ -22,6 +23,9 @@ const NB_CRYPTOS_PER_BATCH = 1;
  * @param excludedIds - IDs des cryptos à exclure (déjà likées/en favoris)
  * @returns Array de cryptos filtrées et mélangées
  */
+// ==============================================
+// Helpers
+// ==============================================
 function getRandomBatch(all: any[], count: number, excludedIds: string[] = []) {
   // Filtrer les cryptos pour exclure celles déjà swipées
   const availableCryptos = all.filter(
@@ -35,6 +39,51 @@ function getRandomBatch(all: any[], count: number, excludedIds: string[] = []) {
   return shuffled.slice(0, count);
 }
 
+// Envoie le swipe à l’API SQL (Prisma/PostgreSQL)
+// ==============================================
+// API helpers
+// ==============================================
+async function postSqlSwipe(
+  userId: string,
+  coin: {
+    id: string;
+    symbol?: string;
+    name?: string;
+    category?: string | null;
+  },
+  swipe_type: "like" | "superlike" | "dislike"
+) {
+  try {
+    const payload = {
+      userId,
+      swipedCrypto: {
+        id: coin.id,
+        symbol: coin.symbol ?? coin.id.toUpperCase(),
+        name: coin.name ?? coin.id,
+        category: coin.category ?? null,
+        swipe_type,
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    const res = await fetch("/api/swipe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      console.error("postSqlSwipe failed:", msg);
+    }
+  } catch (e) {
+    console.error("postSqlSwipe error:", e);
+  }
+}
+
+// ==============================================
+// Component
+// ==============================================
 export default function CardStack() {
   const { filters } = useSidebarFilters();
   const { cryptos, loading, error } = useFilteredCryptos(filters);
@@ -213,6 +262,7 @@ export default function CardStack() {
         if (direction === "right") {
           // Like = Ajout aux investissements avec le montant de swipe de l'utilisateur
           await saveCryptoSwipe(user.uid, crypto, "like", swipeAmount);
+          await postSqlSwipe(user.uid, crypto, "like"); // 👈 ajout SQL
           console.log("Crypto likée et sauvegardée dans les investissements !");
 
           // DÉCLENCHER L'ANIMATION LIKEEXPLOSION - AJOUT
@@ -224,6 +274,7 @@ export default function CardStack() {
         } else if (direction === "up") {
           // Favoris = Ajout aux favoris
           await saveCryptoSwipe(user.uid, crypto, "superlike");
+          await postSqlSwipe(user.uid, crypto, "superlike"); // 👈 ajout SQL
           console.log("Crypto ajoutée aux favoris !");
         }
 

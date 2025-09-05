@@ -1,4 +1,6 @@
-// components/SwipeCard.tsx
+// ==============================================
+// Imports
+// ==============================================
 import {
   motion,
   useMotionValue,
@@ -9,6 +11,9 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 
+// ==============================================
+// Props
+// ==============================================
 interface SwipeCardProps {
   data: any;
   onSwipe: (direction: string) => void;
@@ -17,6 +22,9 @@ interface SwipeCardProps {
   total: number;
 }
 
+// ==============================================
+// Component
+// ==============================================
 export default function SwipeCard({
   data,
   onSwipe,
