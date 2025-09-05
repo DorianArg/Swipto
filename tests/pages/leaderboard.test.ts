@@ -5,51 +5,66 @@
 // ==============================================
 // Imports
 // ==============================================
-import handler from "@/pages/api/leaderboard";
-import { getLeaderboard } from "@/api/leaderboard";
-import { createMocks } from "node-mocks-http";
+import handler from "../../src/pages/api/leaderboard";
+import httpMocks from "node-mocks-http";
 
-// ==============================================
-// Mocks
-// ==============================================
-jest.mock("@/api/leaderboard");
+jest.mock("../../src/lib/prisma", () => ({
+  __esModule: true,
+  default: {
+    swipe: { groupBy: jest.fn() },
+    coin: { findMany: jest.fn() },
+  },
+}));
+
+const prisma = require("../../src/lib/prisma").default;
 
 // ==============================================
 // Tests
 // ==============================================
-describe("GET /api/leaderboard", () => {
-  it("returns aggregated leaderboard", async () => {
-    // Arrange: mock service response
-    (getLeaderboard as jest.Mock).mockResolvedValue([
-      {
-        rank: 1,
-        coinId: "btc",
-        symbol: "BTC",
-        name: "Bitcoin",
-        category: null,
-        likeCount: 2,
-      },
-    ]);
+describe("API /api/leaderboard – paramètre includeSuperlike", () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
-    // Act: invoke handler with mocked request/response
-    const { req, res } = createMocks({ method: "GET" });
-    await handler(req, res);
+  it("inclut superlike quand includeSuperlike=1", async () => {
+    (prisma.swipe.groupBy as jest.Mock).mockResolvedValue([]);
+    (prisma.coin.findMany as jest.Mock).mockResolvedValue([]);
 
-    // Assert: verify successful payload
-    expect(res._getStatusCode()).toBe(200);
-    expect(JSON.parse(res._getData())).toEqual({
-      success: true,
-      data: [
-        {
-          rank: 1,
-          coinId: "btc",
-          symbol: "BTC",
-          name: "Bitcoin",
-          category: null,
-          likeCount: 2,
-        },
-      ],
-      total: 1,
+    const req = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/leaderboard",
+      query: { includeSuperlike: "1" },
     });
+    const res = httpMocks.createResponse();
+
+    await handler(req as any, res as any);
+
+    expect(prisma.swipe.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { action: { in: ["like", "superlike"] } },
+      })
+    );
+    expect(res.statusCode).toBe(200);
+  });
+
+  it("n’inclut pas superlike quand includeSuperlike=0", async () => {
+    (prisma.swipe.groupBy as jest.Mock).mockResolvedValue([]);
+    (prisma.coin.findMany as jest.Mock).mockResolvedValue([]);
+
+    const req = httpMocks.createRequest({
+      method: "GET",
+      url: "/api/leaderboard",
+      query: { includeSuperlike: "0" },
+    });
+    const res = httpMocks.createResponse();
+
+    await handler(req as any, res as any);
+
+    expect(prisma.swipe.groupBy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { action: { in: ["like"] } },
+      })
+    );
+    expect(res.statusCode).toBe(200);
   });
 });

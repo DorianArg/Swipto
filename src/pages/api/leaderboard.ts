@@ -2,11 +2,20 @@
 // Imports
 // ==============================================
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getLeaderboard, LeaderboardItem } from "@/api/leaderboard";
+import prisma from "../../lib/prisma";
 
 // ==============================================
 // Response Types
 // ==============================================
+export type LeaderboardItem = {
+  rank: number;
+  coinId: string;
+  symbol: string;
+  name: string;
+  category: string | null;
+  likeCount: number;
+};
+
 export type LeaderboardResponse =
   | { success: true; data: LeaderboardItem[]; total: number }
   | { success: false; error: string };
@@ -38,8 +47,46 @@ export default async function handler(
       ? Math.min(Math.max(parsed, 1), 100)
       : 20;
 
-    // Retrieve ranked coins
-    const data = await getLeaderboard(limit);
+    // LIKE uniquement par défaut. Passer includeSuperlike=1 pour compter aussi les superlikes
+    const includeSuperlikeParam = String(
+      req.query.includeSuperlike ?? "0"
+    ).toLowerCase();
+    const includeSuperlike = !(
+      includeSuperlikeParam === "0" || includeSuperlikeParam === "false"
+    );
+    const actions = includeSuperlike ? ["like", "superlike"] : ["like"];
+
+    // Agrégation
+    const grouped = await prisma.swipe.groupBy({
+      by: ["coinId"],
+      where: { action: { in: actions } },
+      _count: { coinId: true }, // <- on compte sur coinId
+      orderBy: { _count: { coinId: "desc" } },
+      take: limit,
+    });
+
+    if (grouped.length === 0) {
+      return res.status(200).json({ success: true, data: [], total: 0 });
+    }
+
+    const coinIds = grouped.map((g) => g.coinId);
+    const coins = await prisma.coin.findMany({
+      where: { id: { in: coinIds } },
+      select: { id: true, symbol: true, name: true, category: true },
+    });
+    const coinMap = new Map(coins.map((c) => [c.id, c]));
+
+    const data: LeaderboardItem[] = grouped.map((g, i) => {
+      const coin = coinMap.get(g.coinId);
+      return {
+        rank: i + 1,
+        coinId: coin?.id ?? g.coinId,
+        symbol: coin?.symbol ?? g.coinId.toUpperCase(),
+        name: coin?.name ?? g.coinId,
+        category: coin?.category ?? null,
+        likeCount: g._count.coinId, // ✅ le bon champ
+      };
+    });
 
     // Respond with aggregated data
     return res.status(200).json({ success: true, data, total: data.length });
