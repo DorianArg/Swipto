@@ -1,8 +1,10 @@
-// components/MainLayout.tsx
+// ==============================================
+// Imports
+// ==============================================
 import { ReactNode, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/router";
-import Sidebar from "@/components/Sidebar/Sidebar";
+import Sidebar from "@/components/sidebar/Sidebar";
 
 // Ajout de la déclaration pour window.ethereum
 declare global {
@@ -11,6 +13,9 @@ declare global {
   }
 }
 
+// ==============================================
+// Component
+// ==============================================
 export default function MainLayout({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();

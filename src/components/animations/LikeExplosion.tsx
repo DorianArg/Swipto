@@ -1,6 +1,12 @@
+// ==============================================
+// Imports
+// ==============================================
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
+// ==============================================
+// Props
+// ==============================================
 interface LikeExplosionProps {
   isVisible: boolean;
   onComplete: () => void;
@@ -8,6 +14,9 @@ interface LikeExplosionProps {
   cryptoName: string;
 }
 
+// ==============================================
+// Component
+// ==============================================
 export default function LikeExplosion({
   isVisible,
   onComplete,
