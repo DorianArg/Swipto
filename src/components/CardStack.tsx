@@ -35,6 +35,45 @@ function getRandomBatch(all: any[], count: number, excludedIds: string[] = []) {
   return shuffled.slice(0, count);
 }
 
+// Envoie le swipe à l’API SQL (Prisma/PostgreSQL)
+async function postSqlSwipe(
+  userId: string,
+  coin: {
+    id: string;
+    symbol?: string;
+    name?: string;
+    category?: string | null;
+  },
+  swipe_type: "like" | "superlike" | "dislike"
+) {
+  try {
+    const payload = {
+      userId,
+      swipedCrypto: {
+        id: coin.id,
+        symbol: coin.symbol ?? coin.id.toUpperCase(),
+        name: coin.name ?? coin.id,
+        category: coin.category ?? null,
+        swipe_type,
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    const res = await fetch("/api/swipe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      console.error("postSqlSwipe failed:", msg);
+    }
+  } catch (e) {
+    console.error("postSqlSwipe error:", e);
+  }
+}
+
 export default function CardStack() {
   const { filters } = useSidebarFilters();
   const { cryptos, loading, error } = useFilteredCryptos(filters);
@@ -213,6 +252,7 @@ export default function CardStack() {
         if (direction === "right") {
           // Like = Ajout aux investissements avec le montant de swipe de l'utilisateur
           await saveCryptoSwipe(user.uid, crypto, "like", swipeAmount);
+          await postSqlSwipe(user.uid, crypto, "like"); // 👈 ajout SQL
           console.log("Crypto likée et sauvegardée dans les investissements !");
 
           // DÉCLENCHER L'ANIMATION LIKEEXPLOSION - AJOUT
@@ -224,6 +264,7 @@ export default function CardStack() {
         } else if (direction === "up") {
           // Favoris = Ajout aux favoris
           await saveCryptoSwipe(user.uid, crypto, "superlike");
+          await postSqlSwipe(user.uid, crypto, "superlike"); // 👈 ajout SQL
           console.log("Crypto ajoutée aux favoris !");
         }
 
