@@ -1,18 +1,19 @@
+// ==============================================
+// Imports
+// ==============================================
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSidebarFilters } from "@/context/SidebarFiltersContext";
 import { useFilteredCryptos } from "@/hooks/useFilteredCryptos";
 import { useAuth } from "@/context/AuthContext";
-import {
-  saveCryptoSwipe,
-  getUserData,
-  updateSwipeAmount,
-} from "@/lib/firebase";
-import SwipeCard from "./SwipeCard";
-import ChatBubble from "./ChatBubble";
+import { saveCryptoSwipe, getUserData, updateSwipeAmount } from "@/lib/firebase";
+import SwipeCard from "@/components/cards/SwipeCard";
+import ChatBubble from "@/components/chat/ChatBubble";
+import LikeExplosion from "@/components/animations/LikeExplosion"; // Effet visuel de like
 
-import LikeExplosion from "./LikeExplosion"; // AJOUT DU COMPOSANT
-
+// ==============================================
+// Constants
+// ==============================================
 const NB_CRYPTOS_PER_BATCH = 1;
 
 /**
@@ -22,6 +23,9 @@ const NB_CRYPTOS_PER_BATCH = 1;
  * @param excludedIds - IDs des cryptos à exclure (déjà likées/en favoris)
  * @returns Array de cryptos filtrées et mélangées
  */
+// ==============================================
+// Helpers
+// ==============================================
 function getRandomBatch(all: any[], count: number, excludedIds: string[] = []) {
   // Filtrer les cryptos pour exclure celles déjà swipées
   const availableCryptos = all.filter(
@@ -36,6 +40,9 @@ function getRandomBatch(all: any[], count: number, excludedIds: string[] = []) {
 }
 
 // Envoie le swipe à l’API SQL (Prisma/PostgreSQL)
+// ==============================================
+// API helpers
+// ==============================================
 async function postSqlSwipe(
   userId: string,
   coin: {
@@ -74,6 +81,9 @@ async function postSqlSwipe(
   }
 }
 
+// ==============================================
+// Component
+// ==============================================
 export default function CardStack() {
   const { filters } = useSidebarFilters();
   const { cryptos, loading, error } = useFilteredCryptos(filters);
